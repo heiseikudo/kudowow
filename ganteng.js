@@ -5,7 +5,7 @@ const cheerio = require('cheerio');
 
 // ================== KONFIG USER ==================
 
-const TOKEN = "MTQ1NjY2NzA1NzU2NjUxNTMwNA.GZ6Ge9.fw9Ma_yYQtq2RsLSpC-K9XCaC_nBdEHQvW9s-M"; // <--- GANTI INI
+const TOKEN = "MTQ1NjY2NzA1NzU2NjUxNTMwNA.GZ6Ge9.fBdEHQvW9s-M"; // <--- GANTI INI
 
 const CHANNEL_ID = "1456668157363355823"; // ID Channel
 
@@ -17,7 +17,7 @@ const CAPTCHA_URL = "https://owobot.com/captcha";
 
 // ================== KONFIG 2CAPTCHA ==================
 
-const TWO_CAPTCHA_API_KEY = "643103a5cd55484fc9e8fdde2954ad4f";
+const TWO_CAPTCHA_API_KEY = "643103a54ad4f";
 const TWO_CAPTCHA_ENDPOINT = "https://api.2captcha.com/proxy?key=643103a5cd55484fc9e8fdde2954ad4f&";
 
 // ================== KONFIG DURASI ==================
