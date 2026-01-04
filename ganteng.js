@@ -18,7 +18,7 @@ const CAPTCHA_URL = "https://owobot.com/captcha";
 // ================== KONFIG 2CAPTCHA ==================
 
 const TWO_CAPTCHA_API_KEY = "643103a5cd55484fc9e8fdde2954ad4f";
-const TWO_CAPTCHA_ENDPOINT = "http://2captcha.com/api/";
+const TWO_CAPTCHA_ENDPOINT = "https://api.2captcha.com/proxy?key=643103a5cd55484fc9e8fdde2954ad4f&";
 
 // ================== KONFIG DURASI ==================
 
