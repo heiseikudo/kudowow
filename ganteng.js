@@ -15,6 +15,8 @@ const OWO_ID = "408785106942164992"; // ID Bot OwO
 // ================== KONFIG CAPTCHA ==================
 
 const CAPTCHA_URL = "https://owobot.com/captcha";
+// Cookie opsional jika butuh akses setelah login Discord manual (isi string Cookie dari browser)
+const CAPTCHA_COOKIE = process.env.CAPTCHA_COOKIE || "";
 
 // ================== KONFIG 2CAPTCHA ==================
 
@@ -201,7 +203,8 @@ async function solveCaptchaAndVerify(verifyUrl) {
         console.log("📄 Fetching verification page...");
         const pageResponse = await axios.get(verifyUrl, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                ...(CAPTCHA_COOKIE ? { Cookie: CAPTCHA_COOKIE } : {}),
             },
             timeout: 10000
         });
@@ -216,6 +219,7 @@ async function solveCaptchaAndVerify(verifyUrl) {
                 const authUrl = authLinkMatch[0];
                 console.error("❌ SiteKey not found. Halaman meminta authorize akun Discord.");
                 console.log(`🔗 Silakan buka link authorize ini di browser, login/authorize, lalu ulangi: ${authUrl}`);
+                console.log("ℹ️ Jika sudah authorize, salin Cookie dari browser dan set env CAPTCHA_COOKIE agar bot bisa ambil siteKey otomatis.");
                 try {
                     const opener = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
                     spawn(opener, [authUrl], { stdio: 'ignore', detached: true });
