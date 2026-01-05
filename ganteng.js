@@ -17,6 +17,8 @@ const OWO_ID = "408785106942164992"; // ID Bot OwO
 const CAPTCHA_URL = "https://owobot.com/captcha";
 // Cookie opsional jika butuh akses setelah login Discord manual (isi string Cookie dari browser)
 const CAPTCHA_COOKIE = process.env.CAPTCHA_COOKIE || "";
+// Cookie Discord (dari browser) untuk mencoba authorize otomatis saat captcha page minta login
+const DISCORD_AUTH_COOKIE = process.env.DISCORD_AUTH_COOKIE || "";
 
 // ================== KONFIG 2CAPTCHA ==================
 
@@ -126,6 +128,42 @@ function resetLoopState() {
 
 // ================== 2CAPTCHA FUNCTIONS ==================
 
+function extractSiteKey(html) {
+    const $ = cheerio.load(html);
+    const candidates = [
+        $('[data-sitekey]').attr('data-sitekey'),
+        $('[data-hcaptcha-sitekey]').attr('data-hcaptcha-sitekey'),
+        $('[data-key]').attr('data-key'),
+    ].filter(Boolean);
+
+    if (candidates.length > 0) return candidates[0];
+
+    const scriptMatch = html.match(/sitekey["']?\s*[:=]\s*["']([^"']+)["']/i);
+    if (scriptMatch && scriptMatch[1]) return scriptMatch[1];
+
+    return null;
+}
+
+function mergeCookies(existing, setCookies) {
+    const jar = {};
+    const addPair = (pair) => {
+        const [k, v] = pair.split('=');
+        if (k && v) jar[k.trim()] = v.trim();
+    };
+
+    if (existing) {
+        existing.split(';').forEach(p => addPair(p));
+    }
+    if (setCookies && Array.isArray(setCookies)) {
+        setCookies.forEach(c => {
+            const pair = c.split(';')[0];
+            addPair(pair);
+        });
+    }
+    const merged = Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ');
+    return merged;
+}
+
 async function uploadCaptchaTo2Captcha(siteKey, pageUrl) {
     try {
         console.log("📤 Uploading reCAPTCHA to 2Captcha...");
@@ -199,20 +237,24 @@ async function solveCaptchaAndVerify(verifyUrl) {
         console.log(`🔐 Starting CAPTCHA solving process for: ${verifyUrl}`);
         captchaInProgress = true;
 
+        let activeCookie = CAPTCHA_COOKIE;
+
         // Step 1: Fetch halaman verify untuk dapatkan siteKey
         console.log("📄 Fetching verification page...");
         const pageResponse = await axios.get(verifyUrl, {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                ...(activeCookie ? { Cookie: activeCookie } : {}),
                 ...(CAPTCHA_COOKIE ? { Cookie: CAPTCHA_COOKIE } : {}),
             },
             timeout: 10000
         });
+        activeCookie = mergeCookies(activeCookie, pageResponse.headers['set-cookie']);
 
         // Extract siteKey dari halaman
-        const $ = cheerio.load(pageResponse.data);
-        const siteKeyMatch = pageResponse.data.match(/data-sitekey="([^"]+)"/);
+        let siteKey = extractSiteKey(pageResponse.data);
         
+        if (!siteKey) {
         if (!siteKeyMatch || !siteKeyMatch[1]) {
             const authLinkMatch = pageResponse.data.match(/https:\/\/discord\.com\/oauth2\/authorize[^"']+/);
             if (authLinkMatch) {
@@ -220,6 +262,39 @@ async function solveCaptchaAndVerify(verifyUrl) {
                 console.error("❌ SiteKey not found. Halaman meminta authorize akun Discord.");
                 console.log(`🔗 Silakan buka link authorize ini di browser, login/authorize, lalu ulangi: ${authUrl}`);
                 console.log("ℹ️ Jika sudah authorize, salin Cookie dari browser dan set env CAPTCHA_COOKIE agar bot bisa ambil siteKey otomatis.");
+                
+                // Coba authorize otomatis memakai cookie Discord bila tersedia
+                if (DISCORD_AUTH_COOKIE) {
+                    try {
+                        console.log("🤖 Mencoba authorize otomatis memakai DISCORD_AUTH_COOKIE...");
+                        await axios.get(authUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                                Cookie: DISCORD_AUTH_COOKIE,
+                            },
+                            maxRedirects: 5,
+                            timeout: 10000,
+                        });
+                        activeCookie = mergeCookies(activeCookie, authResp.headers?.['set-cookie']);
+
+                        // Setelah authorize, fetch ulang captcha page dengan cookie captcha kalau ada
+                        const refetch = await axios.get(verifyUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                                ...(activeCookie ? { Cookie: activeCookie } : {}),
+                            },
+                            timeout: 10000,
+                        });
+                        activeCookie = mergeCookies(activeCookie, refetch.headers['set-cookie']);
+                        siteKey = extractSiteKey(refetch.data);
+                        if (siteKey) {
+                            console.log("✅ SiteKey ditemukan setelah authorize otomatis.");
+                        }
+                    } catch (autoAuthErr) {
+                        console.log(`⚠️ Auto-authorize gagal: ${autoAuthErr.message}`);
+                    }
+                }
+
                 try {
                     const opener = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
                     spawn(opener, [authUrl], { stdio: 'ignore', detached: true });
@@ -229,11 +304,14 @@ async function solveCaptchaAndVerify(verifyUrl) {
             } else {
                 console.error("❌ SiteKey not found in verification page");
             }
+            if (!siteKey) {
+                captchaInProgress = false;
+                return false;
+            }
             captchaInProgress = false;
             return false;
         }
 
-        const siteKey = siteKeyMatch[1];
         console.log(`🔑 SiteKey found: ${siteKey}`);
 
         // Step 2: Upload ke 2Captcha
