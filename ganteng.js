@@ -2,6 +2,7 @@ const { Client } = require('discord.js-selfbot-v13');
 const readline = require('readline');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { spawn } = require('child_process');
 
 // ================== KONFIG USER ==================
 
@@ -11,10 +12,18 @@ const CHANNEL_ID = "1456668157363355823"; // ID Channel
 
 const OWO_ID = "408785106942164992"; // ID Bot OwO
 
+// ================== KONFIG CAPTCHA ==================
+
+const CAPTCHA_URL = "https://owobot.com/captcha";
+// Cookie opsional jika butuh akses setelah login Discord manual (isi string Cookie dari browser)
+const CAPTCHA_COOKIE = process.env.CAPTCHA_COOKIE || "";
+// Cookie Discord (dari browser) untuk mencoba authorize otomatis saat captcha page minta login
+const DISCORD_AUTH_COOKIE = process.env.DISCORD_AUTH_COOKIE || "";
+
 // ================== KONFIG 2CAPTCHA ==================
 
 const TWO_CAPTCHA_API_KEY = "643103a5cd55484fc9e8fdde2954ad4f";
-const TWO_CAPTCHA_ENDPOINT = "http://2captcha.com/api/";
+const TWO_CAPTCHA_ENDPOINT = "https://api.2captcha.com/proxy?key=643103a5cd55484fc9e8fdde2954ad4f&";
 
 // ================== KONFIG DURASI ==================
 
@@ -97,6 +106,7 @@ let captchaInProgress = false;
 // State tambahan buat loop
 let nextHunt = 0;
 let nextBattle = 0;
+let canBattle = false;
 
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -112,10 +122,47 @@ function resetLoopState() {
     
     // Set awal timer biar ga tabrakan
     nextHunt = Date.now() + 2000;
-    nextBattle = Date.now() + 5000;
+    nextBattle = 0;
+    canBattle = false;
 }
 
 // ================== 2CAPTCHA FUNCTIONS ==================
+
+function extractSiteKey(html) {
+    const $ = cheerio.load(html);
+    const candidates = [
+        $('[data-sitekey]').attr('data-sitekey'),
+        $('[data-hcaptcha-sitekey]').attr('data-hcaptcha-sitekey'),
+        $('[data-key]').attr('data-key'),
+    ].filter(Boolean);
+
+    if (candidates.length > 0) return candidates[0];
+
+    const scriptMatch = html.match(/sitekey["']?\s*[:=]\s*["']([^"']+)["']/i);
+    if (scriptMatch && scriptMatch[1]) return scriptMatch[1];
+
+    return null;
+}
+
+function mergeCookies(existing, setCookies) {
+    const jar = {};
+    const addPair = (pair) => {
+        const [k, v] = pair.split('=');
+        if (k && v) jar[k.trim()] = v.trim();
+    };
+
+    if (existing) {
+        existing.split(';').forEach(p => addPair(p));
+    }
+    if (setCookies && Array.isArray(setCookies)) {
+        setCookies.forEach(c => {
+            const pair = c.split(';')[0];
+            addPair(pair);
+        });
+    }
+    const merged = Object.entries(jar).map(([k, v]) => `${k}=${v}`).join('; ');
+    return merged;
+}
 
 async function uploadCaptchaTo2Captcha(siteKey, pageUrl) {
     try {
@@ -190,26 +237,77 @@ async function solveCaptchaAndVerify(verifyUrl) {
         console.log(`🔐 Starting CAPTCHA solving process for: ${verifyUrl}`);
         captchaInProgress = true;
 
+        let activeCookie = CAPTCHA_COOKIE;
+
         // Step 1: Fetch halaman verify untuk dapatkan siteKey
         console.log("📄 Fetching verification page...");
         const pageResponse = await axios.get(verifyUrl, {
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                ...(activeCookie ? { Cookie: activeCookie } : {}),
             },
             timeout: 10000
         });
+        activeCookie = mergeCookies(activeCookie, pageResponse.headers['set-cookie']);
 
         // Extract siteKey dari halaman
-        const $ = cheerio.load(pageResponse.data);
-        const siteKeyMatch = pageResponse.data.match(/data-sitekey="([^"]+)"/);
+        let siteKey = extractSiteKey(pageResponse.data);
         
-        if (!siteKeyMatch || !siteKeyMatch[1]) {
-            console.error("❌ SiteKey not found in verification page");
-            captchaInProgress = false;
-            return false;
+        if (!siteKey) {
+            const authLinkMatch = pageResponse.data.match(/https:\/\/discord\.com\/oauth2\/authorize[^"']+/);
+            if (authLinkMatch) {
+                const authUrl = authLinkMatch[0];
+                console.error("❌ SiteKey not found. Halaman meminta authorize akun Discord.");
+                console.log(`🔗 Silakan buka link authorize ini di browser, login/authorize, lalu ulangi: ${authUrl}`);
+                console.log("ℹ️ Jika sudah authorize, salin Cookie dari browser dan set env CAPTCHA_COOKIE agar bot bisa ambil siteKey otomatis.");
+                
+                // Coba authorize otomatis memakai cookie Discord bila tersedia
+                if (DISCORD_AUTH_COOKIE) {
+                    try {
+                        console.log("🤖 Mencoba authorize otomatis memakai DISCORD_AUTH_COOKIE...");
+                        await axios.get(authUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                                Cookie: DISCORD_AUTH_COOKIE,
+                            },
+                            maxRedirects: 5,
+                            timeout: 10000,
+                        });
+                        activeCookie = mergeCookies(activeCookie, authResp.headers?.['set-cookie']);
+
+                        // Setelah authorize, fetch ulang captcha page dengan cookie captcha kalau ada
+                        const refetch = await axios.get(verifyUrl, {
+                            headers: {
+                                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                                ...(activeCookie ? { Cookie: activeCookie } : {}),
+                            },
+                            timeout: 10000,
+                        });
+                        activeCookie = mergeCookies(activeCookie, refetch.headers['set-cookie']);
+                        siteKey = extractSiteKey(refetch.data);
+                        if (siteKey) {
+                            console.log("✅ SiteKey ditemukan setelah authorize otomatis.");
+                        }
+                    } catch (autoAuthErr) {
+                        console.log(`⚠️ Auto-authorize gagal: ${autoAuthErr.message}`);
+                    }
+                }
+
+                try {
+                    const opener = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+                    spawn(opener, [authUrl], { stdio: 'ignore', detached: true });
+                } catch (openErr) {
+                    console.log(`⚠️ Gagal auto-open browser: ${openErr.message}`);
+                }
+            } else {
+                console.error("❌ SiteKey not found in verification page");
+            }
+            if (!siteKey) {
+                captchaInProgress = false;
+                return false;
+            }
         }
 
-        const siteKey = siteKeyMatch[1];
         console.log(`🔑 SiteKey found: ${siteKey}`);
 
         // Step 2: Upload ke 2Captcha
@@ -229,15 +327,23 @@ async function solveCaptchaAndVerify(verifyUrl) {
         // Step 4: Submit CAPTCHA token
         console.log("🚀 Submitting CAPTCHA token...");
         try {
-            const submitResponse = await axios.post(verifyUrl, {
-                'g-recaptcha-response': captchaToken
-            }, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                },
-                maxRedirects: 5,
-                timeout: 10000
-            });
+            const formData = new URLSearchParams();
+            formData.append('g-recaptcha-response', captchaToken);
+
+            const submitResponse = await axios.post(
+                verifyUrl,
+                formData.toString(),
+                {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Referer': verifyUrl,
+                        'Origin': new URL(verifyUrl).origin,
+                    },
+                    maxRedirects: 5,
+                    timeout: 10000,
+                }
+            );
 
             console.log("✅ CAPTCHA submitted successfully!");
             await sleep(3000); // Wait untuk response dari server
@@ -345,13 +451,16 @@ async function mainLoop() {
         console.log("⚔️ Hunting...");
         await sendSafe("wh");
         nextHunt = now + rand(loopMin, loopMax);
+        canBattle = true; // wb hanya setelah wh
+        nextBattle = now + rand(wbDelayMin, wbDelayMax);
     }
 
     // Logic Battle (wb)
-    if (now >= nextBattle) {
+    if (canBattle && now >= nextBattle) {
         console.log("🛡️ Battling...");
         await sendSafe("wb");
-        nextBattle = now + rand(wbDelayMin, wbDelayMax);
+        canBattle = false; // cegah spam, wb cuma sekali setelah wh
+        nextBattle = 0;
     }
 
     // Logic Pray (wpray)
@@ -385,31 +494,30 @@ client.on('messageCreate', async (msg) => {
     // 1. DETEKSI CAPTCHA (PRIORITY UTAMA)
     if ((content.includes("verify") || content.includes("human") || content.includes("real") || content.includes("captcha")) && !captchaInProgress) {
         console.log("🛑 CAPTCHA DETECTED! PAUSING BOT...");
+        const wasRunning = running;
         running = false;
         captchaInProgress = true;
     
-        // Cari URL verify di pesan (biasanya ada embed/link)
-        const urlMatch = msg.content.match(/https?:\/\/[^\s<>]+/);
+        // Langsung gunakan link CAPTCHA bawaan
+        const verifyUrl = CAPTCHA_URL;
+        console.log(`🔗 Using CAPTCHA URL: ${verifyUrl}`);
         
-        if (urlMatch) {
-            const verifyUrl = urlMatch[0];
-            console.log(`🔗 Verify URL found: ${verifyUrl}`);
-            
-            // Solve CAPTCHA
-            const success = await solveCaptchaAndVerify(verifyUrl);
-            
-            if (success) {
-                console.log("✅ CAPTCHA solved! Waiting 5 seconds before resume...");
-                await sleep(5000);
+        // Solve CAPTCHA
+        const success = await solveCaptchaAndVerify(verifyUrl);
+        
+        if (success) {
+            console.log("✅ CAPTCHA solved! Waiting 5 seconds before resume...");
+            await sleep(5000);
+            if (wasRunning) {
                 console.log("▶️ RESUMING BOT!");
                 running = true;
                 resetLoopState();
             } else {
-                console.error("❌ CAPTCHA solving failed. Bot remains paused. Please restart.");
-                captchaInProgress = false;
+                console.log("⏸️ Bot tetap pause sesuai status awal.");
             }
         } else {
-            console.warn("⚠️ CAPTCHA detected but no URL found. Please check the message.");
+            console.error("❌ CAPTCHA solving failed. Bot remains paused. Please restart.");
+            captchaInProgress = false;
         }
         return;
     }
