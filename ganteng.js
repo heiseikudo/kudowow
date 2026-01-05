@@ -2,6 +2,7 @@ const { Client } = require('discord.js-selfbot-v13');
 const readline = require('readline');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const { spawn } = require('child_process');
 
 // ================== KONFIG USER ==================
 
@@ -101,6 +102,7 @@ let captchaInProgress = false;
 // State tambahan buat loop
 let nextHunt = 0;
 let nextBattle = 0;
+let canBattle = false;
 
 function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
 
@@ -116,7 +118,8 @@ function resetLoopState() {
     
     // Set awal timer biar ga tabrakan
     nextHunt = Date.now() + 2000;
-    nextBattle = Date.now() + 5000;
+    nextBattle = 0;
+    canBattle = false;
 }
 
 // ================== 2CAPTCHA FUNCTIONS ==================
@@ -208,7 +211,20 @@ async function solveCaptchaAndVerify(verifyUrl) {
         const siteKeyMatch = pageResponse.data.match(/data-sitekey="([^"]+)"/);
         
         if (!siteKeyMatch || !siteKeyMatch[1]) {
-            console.error("❌ SiteKey not found in verification page");
+            const authLinkMatch = pageResponse.data.match(/https:\/\/discord\.com\/oauth2\/authorize[^"']+/);
+            if (authLinkMatch) {
+                const authUrl = authLinkMatch[0];
+                console.error("❌ SiteKey not found. Halaman meminta authorize akun Discord.");
+                console.log(`🔗 Silakan buka link authorize ini di browser, login/authorize, lalu ulangi: ${authUrl}`);
+                try {
+                    const opener = process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+                    spawn(opener, [authUrl], { stdio: 'ignore', detached: true });
+                } catch (openErr) {
+                    console.log(`⚠️ Gagal auto-open browser: ${openErr.message}`);
+                }
+            } else {
+                console.error("❌ SiteKey not found in verification page");
+            }
             captchaInProgress = false;
             return false;
         }
@@ -357,13 +373,16 @@ async function mainLoop() {
         console.log("⚔️ Hunting...");
         await sendSafe("wh");
         nextHunt = now + rand(loopMin, loopMax);
+        canBattle = true; // wb hanya setelah wh
+        nextBattle = now + rand(wbDelayMin, wbDelayMax);
     }
 
     // Logic Battle (wb)
-    if (now >= nextBattle) {
+    if (canBattle && now >= nextBattle) {
         console.log("🛡️ Battling...");
         await sendSafe("wb");
-        nextBattle = now + rand(wbDelayMin, wbDelayMax);
+        canBattle = false; // cegah spam, wb cuma sekali setelah wh
+        nextBattle = 0;
     }
 
     // Logic Pray (wpray)
