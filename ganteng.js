@@ -245,6 +245,7 @@ async function solveCaptchaAndVerify(verifyUrl) {
             headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
                 ...(activeCookie ? { Cookie: activeCookie } : {}),
+                ...(CAPTCHA_COOKIE ? { Cookie: CAPTCHA_COOKIE } : {}),
             },
             timeout: 10000
         });
@@ -254,6 +255,7 @@ async function solveCaptchaAndVerify(verifyUrl) {
         let siteKey = extractSiteKey(pageResponse.data);
         
         if (!siteKey) {
+        if (!siteKeyMatch || !siteKeyMatch[1]) {
             const authLinkMatch = pageResponse.data.match(/https:\/\/discord\.com\/oauth2\/authorize[^"']+/);
             if (authLinkMatch) {
                 const authUrl = authLinkMatch[0];
@@ -306,6 +308,8 @@ async function solveCaptchaAndVerify(verifyUrl) {
                 captchaInProgress = false;
                 return false;
             }
+            captchaInProgress = false;
+            return false;
         }
 
         console.log(`🔑 SiteKey found: ${siteKey}`);
