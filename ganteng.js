@@ -21,6 +21,8 @@ const CAPTCHA_COOKIE = process.env.CAPTCHA_COOKIE || "";
 const DISCORD_AUTH_COOKIE = process.env.DISCORD_AUTH_COOKIE || "";
 // Token Discord (Authorization header) untuk fallback authorize otomatis
 const DISCORD_TOKEN = process.env.DISCORD_TOKEN || "";
+// Cookie hCaptcha dari owobot (jika diberikan manual)
+const HCAPTCHA_COOKIE = process.env.HCAPTCHA_COOKIE || "";
 
 // ================== KONFIG 2CAPTCHA ==================
 
@@ -282,6 +284,7 @@ async function solveCaptchaAndVerify(verifyUrl) {
         let activeCookie = CAPTCHA_COOKIE;
         // Gabungkan cookie captcha + cookie Discord (jika ada) di awal
         activeCookie = mergeCookies(activeCookie, DISCORD_AUTH_COOKIE ? [DISCORD_AUTH_COOKIE] : []);
+        activeCookie = mergeCookies(activeCookie, HCAPTCHA_COOKIE ? [HCAPTCHA_COOKIE] : []);
 
         // Step 1: Fetch halaman verify untuk dapatkan siteKey
         console.log("📄 Fetching verification page...");
