@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studi Kedinasan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__content">
+      <div class="brand">
+        <div class="brand__icon">SK</div>
+        <div>
+          <p class="brand__title">Studi Kedinasan</p>
+          <p class="brand__subtitle">Bimbingan Sekolah Kedinasan</p>
+        </div>
+      </div>
+      <nav class="nav" id="nav">
+        <a href="#program" class="nav__link">Program</a>
+        <a href="#fasilitas" class="nav__link">Fasilitas</a>
+        <a href="#alur" class="nav__link">Alur</a>
+        <a href="#faq" class="nav__link">FAQ</a>
+        <a href="#kontak" class="button button--ghost">Konsultasi</a>
+      </nav>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero__grid">
+        <div class="hero__content">
+          <p class="eyebrow">Persiapkan diri ke sekolah kedinasan</p>
+          <h1>Raih bangku impian dengan strategi belajar yang terukur</h1>
+          <p class="lead">
+            Kurikulum terstruktur, tryout berlapis, dan pendampingan mentor profesional
+            untuk membantu kamu lolos seleksi sekolah kedinasan di seluruh Indonesia.
+          </p>
+          <div class="hero__actions">
+            <a class="button" href="#kontak">Daftar Sekarang</a>
+            <a class="button button--ghost" href="#program">Lihat Program</a>
+          </div>
+          <div class="stats">
+            <div class="stat-card">
+              <p class="stat-card__value">6.500+</p>
+              <p class="stat-card__label">Siswa terbantu</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-card__value">92%</p>
+              <p class="stat-card__label">Rata-rata kelulusan tryout</p>
+            </div>
+            <div class="stat-card">
+              <p class="stat-card__value">24/7</p>
+              <p class="stat-card__label">Mentoring & support</p>
+            </div>
+          </div>
+        </div>
+        <div class="hero__panel">
+          <div class="panel-card">
+            <p class="panel__title">Apa yang kamu dapatkan?</p>
+            <ul class="panel__list">
+              <li>Roadmap belajar yang mengikuti jadwal seleksi</li>
+              <li>Bank soal SKD, Psikotes, dan Tes Fisik ter-update</li>
+              <li>Bedah soal live bersama mentor kedinasan</li>
+              <li>Simulasi CAT adaptif dengan analisis nilai</li>
+              <li>Tryout nasional tiap pekan</li>
+              <li>Kelas fokus untuk Polstat, STAN, STIN, IPDN, STMKG, dan lainnya</li>
+            </ul>
+            <div class="panel__cta">
+              <p>Siap mulai?</p>
+              <a class="button button--full" href="#kontak">Konsultasi Gratis</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="program">
+      <div class="container">
+        <div class="section__header">
+          <p class="eyebrow">Program unggulan</p>
+          <h2>Dirancang sesuai kebutuhan siswa kedinasan</h2>
+          <p class="section__lead">Mulai dari pemetaan kemampuan hingga strategi saat hari-H.</p>
+        </div>
+        <div class="cards-grid">
+          <article class="card">
+            <div class="card__icon">🎯</div>
+            <h3>Bootcamp Intensif</h3>
+            <p>Kelas terjadwal dengan jadwal belajar harian, target capaian, dan tugas terstruktur.</p>
+            <ul class="pill-list">
+              <li>Live kelas</li>
+              <li>Modul cetak & digital</li>
+              <li>Mentor khusus</li>
+            </ul>
+          </article>
+          <article class="card">
+            <div class="card__icon">🧠</div>
+            <h3>Tryout Adaptif CAT</h3>
+            <p>Soal menyesuaikan tingkat kemampuanmu, lengkap dengan pembahasan dan raport detail.</p>
+            <ul class="pill-list">
+              <li>Analisis butir soal</li>
+              <li>Simulasi waktu nyata</li>
+              <li>Ranking nasional</li>
+            </ul>
+          </article>
+          <article class="card">
+            <div class="card__icon">🤝</div>
+            <h3>Mentoring Pribadi</h3>
+            <p>Sesi coaching 1-on-1 untuk strategi daftar, penyusunan berkas, hingga latihan wawancara.</p>
+            <ul class="pill-list">
+              <li>Checklist berkas</li>
+              <li>Latihan psikotes</li>
+              <li>Review fisik & kesehatan</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--muted" id="fasilitas">
+      <div class="container">
+        <div class="section__header">
+          <p class="eyebrow">Fasilitas pendukung</p>
+          <h2>Belajar tanpa khawatir</h2>
+          <p class="section__lead">Semua fasilitas dirancang supaya fokusmu tetap pada hasil terbaik.</p>
+        </div>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-card__icon">💻</div>
+            <div>
+              <h3>Platform Belajar Modern</h3>
+              <p>Dashboard progres, video interaktif, dan reminder otomatis.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">📊</div>
+            <div>
+              <h3>Analisis Nilai</h3>
+              <p>Pemetaan kekuatan dan kelemahan, lengkap dengan rekomendasi materi.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">🧾</div>
+            <div>
+              <h3>Simulasi Administrasi</h3>
+              <p>Template berkas, checklist, dan panduan upload tanpa error.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">🏃</div>
+            <div>
+              <h3>Latihan Fisik</h3>
+              <p>Program latihan lari, renang, dan kekuatan sesuai standar sekolah kedinasan.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">🔒</div>
+            <div>
+              <h3>Grup Diskusi Privat</h3>
+              <p>Teman belajar, update info seleksi, dan dukungan mentor setiap saat.</p>
+            </div>
+          </div>
+          <div class="feature-card">
+            <div class="feature-card__icon">🎤</div>
+            <div>
+              <h3>Bedah Soal Live</h3>
+              <p>Belajar pola soal langsung dari mentor berpengalaman di sekolah kedinasan.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="alur">
+      <div class="container">
+        <div class="section__header">
+          <p class="eyebrow">Alur Pendaftaran</p>
+          <h2>Mudah, jelas, dan terarah</h2>
+        </div>
+        <div class="timeline">
+          <div class="timeline__item">
+            <div class="timeline__number">1</div>
+            <div>
+              <h3>Konsultasi & Pemetaan</h3>
+              <p>Tim kami menganalisis target sekolah, nilai rapor, dan kebutuhan belajar.</p>
+            </div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__number">2</div>
+            <div>
+              <h3>Mulai Belajar</h3>
+              <p>Akses modul, jadwal kelas, dan jadwal latihan fisik sesuai roadmap.</p>
+            </div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__number">3</div>
+            <div>
+              <h3>Tryout & Evaluasi</h3>
+              <p>Ikuti simulasi berkala dan dapatkan laporan detail plus tips peningkatan.</p>
+            </div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__number">4</div>
+            <div>
+              <h3>Siap Hari-H</h3>
+              <p>Latihan psikotes, wawancara, dan simulasi akhir sebelum ujian resmi.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--muted">
+      <div class="container testimonials">
+        <div class="section__header">
+          <p class="eyebrow">Cerita mereka</p>
+          <h2>Testimoni siswa yang sudah lolos</h2>
+        </div>
+        <div class="testimonial-grid">
+          <article class="testimonial">
+            <p class="testimonial__quote">“Tryout adaptifnya mirip CAT asli. Nilai saya terus naik sampai akhirnya tembus IPDN.”</p>
+            <div class="testimonial__meta">
+              <div class="avatar">AN</div>
+              <div>
+                <p class="testimonial__name">Ani Nurcahya</p>
+                <p class="testimonial__role">IPDN 2024</p>
+              </div>
+            </div>
+          </article>
+          <article class="testimonial">
+            <p class="testimonial__quote">“Mentornya detail banget, bahkan dikasih program fisik buat lari dan renang.”</p>
+            <div class="testimonial__meta">
+              <div class="avatar">RF</div>
+              <div>
+                <p class="testimonial__name">Rifqi Fadli</p>
+                <p class="testimonial__role">STIN 2024</p>
+              </div>
+            </div>
+          </article>
+          <article class="testimonial">
+            <p class="testimonial__quote">“Bedah soal live dan pembahasan tertulisnya membantu saya paham pola soal SKD.”</p>
+            <div class="testimonial__meta">
+              <div class="avatar">DS</div>
+              <div>
+                <p class="testimonial__name">Dewi Saputri</p>
+                <p class="testimonial__role">STAN 2023</p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="container faq">
+        <div class="section__header">
+          <p class="eyebrow">FAQ</p>
+          <h2>Pertanyaan yang sering ditanyakan</h2>
+        </div>
+        <div class="faq__list">
+          <details class="faq__item" open>
+            <summary>Apakah kelas bisa diakses online?</summary>
+            <p>Ya, seluruh materi tersedia di platform belajar dan bisa diakses lewat desktop atau mobile.</p>
+          </details>
+          <details class="faq__item">
+            <summary>Apakah ada garansi kelulusan?</summary>
+            <p>Kami memberikan roadmap, tryout rutin, dan mentoring intensif. Kelulusan sangat dipengaruhi konsistensi belajar dan kesiapan fisik.</p>
+          </details>
+          <details class="faq__item">
+            <summary>Bagaimana jadwal kelas?</summary>
+            <p>Jadwal dibuat fleksibel. Kelas live biasanya 3-4 kali seminggu, ditambah sesi rekaman yang bisa diputar ulang.</p>
+          </details>
+          <details class="faq__item">
+            <summary>Apakah ada pendampingan berkas?</summary>
+            <p>Ada. Mentor akan membantu menyiapkan dokumen, pengecekan format, dan simulasi upload agar sesuai ketentuan.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--highlight" id="kontak">
+      <div class="container cta">
+        <div>
+          <p class="eyebrow eyebrow--light">Hubungi kami</p>
+          <h2>Bergabung sekarang dan mulai latihan dari hari ini</h2>
+          <p class="section__lead section__lead--light">Konsultasikan target sekolahmu, kami akan siapkan rencana belajarnya.</p>
+        </div>
+        <form class="form">
+          <div class="form__grid">
+            <label class="form__field">
+              <span>Nama lengkap</span>
+              <input type="text" name="nama" placeholder="Nama kamu" required>
+            </label>
+            <label class="form__field">
+              <span>Email</span>
+              <input type="email" name="email" placeholder="email@contoh.com" required>
+            </label>
+            <label class="form__field">
+              <span>No. WhatsApp</span>
+              <input type="tel" name="whatsapp" placeholder="08xxxxxxxxxx" required>
+            </label>
+            <label class="form__field">
+              <span>Target sekolah</span>
+              <input type="text" name="target" placeholder="Contoh: STAN, IPDN, STIN" required>
+            </label>
+          </div>
+          <label class="form__field">
+            <span>Pesan</span>
+            <textarea name="pesan" rows="3" placeholder="Ceritakan kebutuhan dan jadwalmu"></textarea>
+          </label>
+          <button type="submit" class="button button--full">Kirim & Jadwalkan Konsultasi</button>
+          <p class="form__hint">Kami akan menghubungi dalam 1x24 jam. Data kamu aman bersama kami.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__grid">
+      <div>
+        <div class="brand">
+          <div class="brand__icon">SK</div>
+          <div>
+            <p class="brand__title">Studi Kedinasan</p>
+            <p class="brand__subtitle">Belajar fokus, hasil maksimal.</p>
+          </div>
+        </div>
+        <p class="footer__text">Bimbingan sekolah kedinasan dengan pendekatan terukur, mentor ahli, dan simulasi yang menyerupai ujian resmi.</p>
+      </div>
+      <div class="footer__links">
+        <div>
+          <p class="footer__title">Program</p>
+          <a href="#program">Bootcamp</a>
+          <a href="#program">Tryout CAT</a>
+          <a href="#program">Mentoring</a>
+        </div>
+        <div>
+          <p class="footer__title">Informasi</p>
+          <a href="#alur">Alur Pendaftaran</a>
+          <a href="#faq">FAQ</a>
+          <a href="#kontak">Kontak</a>
+        </div>
+        <div>
+          <p class="footer__title">Hubungi</p>
+          <a href="mailto:halo@studikedinasan.id">halo@studikedinasan.id</a>
+          <a href="https://wa.me/6281234567890">WhatsApp</a>
+        </div>
+      </div>
+    </div>
+    <p class="footer__copyright">© 2024 Studi Kedinasan. All rights reserved.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
